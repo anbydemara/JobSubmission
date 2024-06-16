@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>重置账号</title>
+    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/styles/common.css">
+</head>
+<body>
+    <header>
+        <hr />
+            <h1>XAI作业管理系统</h1>
+        <hr />
+    </header>
+    <main>
+        <ul class="layui-nav">
+            <li class="layui-nav-item"><a href="/admin">提交详情</a></li>
+            <li class="layui-nav-item"><a href="/toaddcourse">添加课程</a></li>
+            <li class="layui-nav-item"><a href="/cmanage">课程管理</a></li>
+            <li class="layui-nav-item"><a href="/home">展示页面</a></li>
+        </ul>
+
+        <div style="width: 750px;margin: 10px auto" class="layui-panel">
+            <div style="padding: 30px;">
+                <h1 style="text-align: center;margin-bottom: 20px;">重置账号</h1>
+                <form class="layui-form" action="/resetAdmin" id="resetForm" method="post">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">账号</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="username" value="{{ adminId }}"  lay-verify="required" placeholder="账号" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">密码</label>
+                        <div class="layui-input-block">
+                            <input type="password" name="password"  lay-verify="required" placeholder="密码" autocomplete="off" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                        <input class="layui-btn" id="btn" style="margin-left: 35%" value="重置"  type="button" lay-filter="formDemo" />
+                    </div>
+                    </div>
+                </form>
+                <div style="width: 100px;text-align: center;color: red;margin: 0 auto">{{ status }}</div>
+            </div>
+        </div>
+    </main>
+    <script src="/static/layui/layui.js"></script>
+    <script src="/static/js/jquery-1.11.0.js"></script>
+    <script>
+        function showTip(msg) {
+            layui.use('layer', function(){
+              var layer = layui.layer;
+              layer.open({
+                  title: 'Tips'
+                  ,content: msg
+                });
+            });
+        }
+        $(function () {
+            $("#btn").click(function () {
+               let username = $("input[name='username']").val();
+               let password = $("input[name='password']").val();
+               if (!username) {
+                   showTip("账号不能为空");
+                   return;
+               }
+               if (password.length < 4 || password.length > 14) {
+                   showTip("密码需 4 到 14 位")
+                   return;
+               }
+               $("#resetForm").submit();
+            });
+        });
+    </script>
+<style>
+
+</style>
+</body>
+</html>

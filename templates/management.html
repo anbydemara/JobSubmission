@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>提交详情</title>
+    <link rel="stylesheet" href="/static/styles/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/styles/common.css">
+</head>
+
+<body>
+    <div>
+         <header>
+            <hr />
+                <h1>XAI作业管理系统</h1>
+            <hr />
+        </header>
+        <main>
+            {#    顶部导航栏    #}
+            <ul class="layui-nav">
+                <li class="layui-nav-item"><a href="/admin">提交详情</a></li>
+                <li class="layui-nav-item"><a href="/toaddcourse">添加课程</a></li>
+                <li class="layui-nav-item"><a href="/cmanage">课程管理</a></li>
+                <li class="layui-nav-item"><a href="/home">展示页面</a></li>
+                <li class="layui-nav-item" style="float: right;">
+                    <a onclick="logout()" style="cursor: pointer">退出登录</a>
+                </li>
+                <li class="layui-nav-item" style="float: right;">
+                    <a href="/toReset">重置账号</a>
+                </li>
+            </ul>
+
+            <div class="layui-row">
+                {#      侧边导航栏      #}
+                <div class="layui-col-md2" style="width: 300px;margin-top: 10px;">
+                    <div class="layui-panel">
+                        <div style="padding: 0px;">
+                            <ul class="layui-menu" id="docDemoMenu1">
+                                <li class="layui-menu-item-group layui-menu-item-down">
+                                    <div class="layui-menu-body-title">
+                                        全部 <i class="layui-icon layui-icon-down"></i>
+                                    </div>
+                                    <ul>
+                                        {% for k,v in menu.items() %}
+                                            <li class="layui-menu-item-group layui-menu-item-down">
+                                                <div class="layui-menu-body-title">
+                                                    {{k}} <i class="layui-icon layui-icon-up"></i>
+                                                </div>
+                                                <ul>
+                                                    {% for course in v %}
+                                                        <li>
+                                                            <div class="layui-menu-body-title">
+                                                                <a href="/show_course?course={{course[0]}}">{{course[1]}}</a>
+                                                            </div>
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {#      表格      #}
+
+                <div style="margin-left: 20px;" class="layui-col-md9">
+                    <table class="layui-table">
+                        <thead>
+                            <tr id="thead">
+                                <td>组别</td>
+                                <td>小组成员</td>
+                                <td>课程编号</td>
+                                <td>课程名称</td>
+                                <td>提交状态</td>
+                                <td>操作1</td>
+                                <td>操作2</td>
+                            </tr>
+                        </thead>
+                        <tbody >
+                            {% for stu in data %}
+                                <tr >
+                                    <form action="/remove" method="post" id="removeForm{{stu['groupId']}}">
+                                        <td><input type="text" name="group_id" value="{{ stu['groupId'] }}" style="display:none"/>{{ stu['groupId'] }}</td>
+                                        <td>{{stu['member']}}</td>
+                                        <td>{{stu['courseId']}}</td>
+                                        <td>{{stu['courseName']}}</td>
+                                        <td>{{stu['submit']}}</td>
+                                        <td><button type="button" onclick="removeData({{[stu['groupId'], stu['submit']]}})" class="layui-btn layui-btn-danger">删除</button></td>
+                                    </form>
+                                    <form action="/manage/upload" method="post" id="upload">
+                                        <td><input type="text" name="group_id" value="{{ stu['groupId'] }}" style="display: none"/><button type="submit" class="layui-btn" id="upload">上传</button></td>
+                                    </form>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div style="float: right">{{ paginate.links }}</div>
+                </div>
+            </div>
+        </main>
+    </div>
+<script src="/static/layui/layui.js"></script>
+<script>
+    let admin = 'true'
+    localStorage.setItem('admin', admin)
+
+    function logout() {
+        localStorage.removeItem('admin')
+        location.href = '/admin_logout'
+    }
+
+    function removeData(param) {
+        if (param[1] === '已提交') {
+            layui.use('layer', function(){
+              var layer = layui.layer;
+              layer.confirm('确认删除该小组的作业？', {
+                       btn: ['确认'],
+                        btn1: function (index, layero) {
+                            form1 = document.getElementById('removeForm'+param[0])
+                            form1.submit()
+                        }
+                    });
+            });
+        } else {
+            layui.use('layer', function(){
+              var layer = layui.layer;
+              layer.open({
+                  title: 'Tips'
+                  ,content: '删除失败，该小组还未提交'
+                });
+            });
+        }
+    }
+</script>
+</body>
+</html>

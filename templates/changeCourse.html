@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>修改课程信息</title>
+    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/styles/common.css">
+</head>
+<body>
+    <div>
+        <header>
+            <hr />
+                <h1>XAI作业管理系统</h1>
+            <hr />
+        </header>
+        <main>
+            <ul class="layui-nav" lay-filter="">
+                <li class="layui-nav-item"><a href="/admin">提交详情</a></li>
+                <li class="layui-nav-item"><a href="/toaddcourse">添加课程</a></li>
+                <li class="layui-nav-item"><a href="/cmanage">课程管理</a></li>
+                <li class="layui-nav-item"><a href="/home">展示页面</a></li>
+                <li class="layui-nav-item" style="float: right;">
+                    <button type="button" class="layui-btn" onclick="logout()" style="background-color: rgba(0,0,0,0);height: 20px">退出登录</button>
+                </li>
+            </ul>
+
+            <div class="layui-row layui-col-space15">
+             <div class="layui-col-md3"></div>
+             <div class="layui-col-md6">
+                 <div class="layui-panel" style="margin-top: 10px;">
+
+                     <div style="padding: 30px;">
+                         <form class="layui-form" action="/changeCourse" method="post">
+                            <input type="text" name="courseId" value="{{courseInfo[0]}}" style="display: none;" autocomplete="off" class="layui-input">
+                            <div class="layui-form-item">
+                              <label class="layui-form-label">课程名称</label>
+                              <div class="layui-input-block">
+                                <input type="text" name="courseName" id="courseName" value="{{courseInfo[1]}}"  lay-verify="required" placeholder="请输入课程名称" autocomplete="off" class="layui-input">
+                              </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                              <label class="layui-form-label">学年</label>
+                              <div class="layui-input-block">
+                                <select name="schoolYear" id="schoolYear" lay-verify="required">
+                                  <option value=""></option>
+
+                                </select>
+                              </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                              <label class="layui-form-label">学期</label>
+                              <div class="layui-input-block">
+                                  <select name="term" id="term" lay-verify="required">
+                                      <option value=""></option>
+                                      <option value="1">1</option>
+                                      <option value="2">2</option>
+                                  </select>
+                              </div>
+                            </div>
+
+                             <div class="layui-form-item">
+                              <label class="layui-form-label">年级</label>
+                              <div class="layui-input-block">
+                                <select name="grade" id="grade" lay-verify="required">
+                                  <option value=""></option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                              <div class="layui-input-block">
+                                <input class="layui-btn" id="btn" style="margin-left: 35%"  type="submit" value="修改" lay-filter="formDemo" />
+                              </div>
+                            </div>
+                         </form>
+                    </div>
+                 </div>
+             </div>
+             <div class="layui-col-md3"></div>
+        </div>
+        </main>
+    </div>
+
+<script src="/static/layui/layui.js"></script>
+<script>
+    init_grade()
+    init_schoolYear()
+    function init_grade() {
+        let gradeSelect = document.getElementById("grade")
+        let now = new Date()
+        let cur_year = now.getFullYear()
+        cur_year = cur_year % 100
+        let all_grades = []
+
+        for(let i = cur_year - 5;i < cur_year + 2; i++) {
+            all_grades.push(i)
+        }
+        for (let grd of all_grades) {
+            let option_temp = document.createElement('option')
+            option_temp.value = grd
+            option_temp.text = grd + '级'
+            gradeSelect.appendChild(option_temp)
+        }
+        gradeSelect.value = {{courseInfo[5]}}
+    }
+
+    function init_schoolYear() {
+        let schYear = document.getElementById('schoolYear')
+        let now = new Date()
+        let cur_year = now.getFullYear()
+        let first_years = []
+        let second_years = []
+        for(let i = cur_year - 5;i < cur_year + 2; i++) {
+            first_years.push(i)
+            second_years.push(i+1)
+        }
+        let all_years = []
+        for (let i = 0; i < first_years.length; i++) {
+            all_years[i] = first_years[i] + '-' + second_years[i]
+        }
+        for (let schY of all_years) {
+            let option_temp = document.createElement('option')
+            option_temp.value = schY
+            option_temp.text = schY
+            schYear.appendChild(option_temp)
+        }
+        schYear.value = {{courseInfo[2]}} + '-' + {{courseInfo[3]}}
+        let term = document.getElementById('term')
+        term.value = {{courseInfo[4]}}
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录</title>
+</head>
+<body>
+    <!-- 学生登录 -->
+    <div class="container stu_login">
+        <div class="login-wrapper">
+            <div class="header">学生登录</div>
+            <div class="form-wrapper">
+                <form action="/login" method="post" id="stu_login_form">
+                    <div class="form-item">
+                        <input type="text" name="account" placeholder="account" class="input-item">
+                        <div id="stu_act_info" class="info"></div>
+                    </div>
+                    <div class="form-item">
+                        <input type="password" name="password" placeholder="password" class="input-item">
+                        <div id="stu_pwd_info" class="info"></div>
+                    </div>
+                    <div class="info" id="login-info" style="margin: auto">{{ not_login }}</div>
+                    <input type="button" class="btn" id="stuSubmit" value="Login" />
+                </form>
+            </div>
+            <div class="msg">
+                <a style="cursor: pointer" id="to_reset">修改密码</a>
+                <a style="float: right;cursor: pointer;" id="to_teacher">教师登录</a>
+            </div>
+        </div>
+    </div>
+    <!--  修改密码  -->
+    <div class="container reset_pwd">
+        <div class="login-wrapper">
+            <div class="header" style="line-height: 60px;">修改密码</div>
+            <div class="form-wrapper">
+                <form action="/reset" method="post" id="resetForm">
+                    <div class="form-item">
+                        <input type="text" name="groupId" placeholder="账号" class="input-item">
+                        <div id="group_info" class="info"></div>
+                    </div>
+                    <div class="form-item">
+                        <input type="password" name="oldPassword" placeholder="原密码" class="input-item">
+                        <div id="old_pwd_info" class="info"></div>
+                    </div>
+                    <div class="form-item">
+                        <input type="password" name="newPassword" placeholder="新密码" class="input-item">
+                        <div id="new_pwd_info" class="info"></div>
+                    </div>
+                    <div class="form-item">
+                        <input type="password" name="rePassword" placeholder="确认密码" class="input-item">
+                        <div id="re_pwd_info" class="info"></div>
+                    </div>
+                    <input type="button" class="btn" style="margin-top: 0px;cursor: pointer" id="resetSubmit" value="Reset" />
+                </form>
+            </div>
+            <div class="msg">
+                <a id="back_login" style="cursor: pointer">用户登录</a>
+            </div>
+        </div>
+    </div>
+    <!--  教师登录  -->
+    <div class="container teacher_login">
+        <div class="login-wrapper">
+            <div class="header">教师登录</div>
+            <div class="form-wrapper">
+                <form action="/admin" method="post" id="admin_form">
+                    <div class="form-item">
+                        <input type="text" name="admin" placeholder="account" class="input-item">
+                        <div id="admin_info" class="info"></div>
+                    </div>
+                    <div class="form-item">
+                        <input type="password" name="password" id="admin_pwd" placeholder="password" class="input-item">
+                        <div id="admin_pwd_info" class="info"></div>
+                    </div>
+                    <input type="button" class="btn" id="adminSubmit" value="Login" />
+                </form>
+            </div>
+            <div class="msg">
+                <a style="float: right;cursor: pointer;" id="to_stu">学生登录</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/jquery-1.11.0.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            // 登录切换
+            $('.reset_pwd').hide();
+            $('.teacher_login').hide();
+            $('#to_teacher').click(function () {
+                $('.stu_login').hide();
+                $('.teacher_login').show();
+            });
+            $('#to_stu').click(function () {
+                $('.teacher_login').hide();
+                $('.stu_login').show();
+            });
+            $("#to_reset").click(function () {
+                $(".stu_login").hide();
+                $(".reset_pwd").show();
+            });
+            $("#back_login").click(function () {
+                $(".reset_pwd").hide();
+                $(".stu_login").show();
+            })
+
+            // input校验
+            function selfValidate(elem, infoBox,msg) {
+                elem.blur(function () {
+                    let value = elem.val();
+                    if (!value) {
+                        infoBox.text(msg);
+                    } else {
+                        infoBox.text("");
+                    }
+                });
+            }
+
+            // user login start
+            selfValidate($("input[name='account']"), $('#stu_act_info'), "请输入账号");
+            selfValidate($("input[name='password']"), $('#stu_pwd_info'), "请输入密码");
+            $('#stuSubmit').click(function () {
+                $('#login-info').text('');
+                let flag = true;
+                if (!$("input[name='account']").val()) {
+                    $('#stu_act_info').text("请输入账号");
+                    flag = false;
+                }
+                if (!$("input[name='password']").val()) {
+                    $('#stu_pwd_info').text("请输入密码");
+                    flag = false;
+                }
+                if (flag) {
+                    $('#stu_login_form').submit();
+                }
+            });
+            // user login end
+
+            // admin login start
+            selfValidate($("input[name='admin']"), $('#admin_info'), "请输入账号");
+            selfValidate($("#admin_pwd"), $('#admin_pwd_info'), "请输入密码");
+            $('#adminSubmit').click(function () {
+                $('#admin-login-info').text('');
+                let flag = true;
+                if (!$("input[name='admin']").val()) {
+                    $('#admin_info').text("请输入账号");
+                    flag = false;
+                }
+                if (!$("#admin_pwd").val()) {
+                    $('#admin_pwd_info').text("请输入密码");
+                    flag = false;
+                }
+                if (flag) {
+                    $('#admin_form').submit();
+                }
+            })
+            // admin login end
+
+            // reset start
+            selfValidate($("input[name='groupId']"), $("#group_info"), "请输入账号");
+            selfValidate($("input[name='oldPassword']"), $("#old_pwd_info"), "请输入原密码");
+
+            let re_in = $("input[name='rePassword']");
+            let new_in = $("input[name='newPassword']");
+            re_in.blur(function () {
+                let value = re_in.val();
+                if (value !== $("input[name='newPassword']").val()) {
+                    $("#re_pwd_info").text("两次密码不一致")
+                } else {
+                    $("#re_pwd_info").text("")
+                }
+            });
+            new_in.blur(function () {
+               const len = new_in.val().length
+                if (len < 4 || len > 12) {
+                    $("#new_pwd_info").text("密码需 4 到 12 位")
+                } else {
+                    $("#new_pwd_info").text("")
+                }
+            });
+
+            $('#resetSubmit').click(function () {
+                $('#login-info').text('');
+                let flag = true;
+                if (!$("input[name='groupId']").val()) {
+                    $("#group_info").text("请输入账号");
+                    flag = false;
+                }
+                if (!$("input[name='oldPassword']").val()) {
+                    $("#old_pwd_info").text("请输入原密码");
+                    flag = false;
+                }
+                if (!$("input[name='newPassword']").val()) {
+                    $("#new_pwd_info").text("请输入新密码");
+                    flag = false;
+                }
+                if ($("input[name='newPassword']").val() !== $("input[name='rePassword']").val()) {
+                    $("#re_pwd_info").text("两次密码不一致");
+                    flag = false;
+                }
+                if (flag) {
+                    $('#resetForm').submit();
+                }
+            });
+            // reset end
+        });
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        html {
+            height: 100%;
+        }
+        body {
+            height: 100%;
+        }
+
+        .info {
+            font-size: 12px;
+            width: 100px;
+            height: 15px;
+            color: red;
+        }
+
+        .form-item {
+            margin-bottom: 20px;
+        }
+
+        .container {
+            height: 100%;
+            background-image: linear-gradient(to right, #fbc2eb, #a6c1ee);
+        }
+        .login-wrapper {
+            background-color: #fff;
+            width: 358px;
+            height: 488px;
+            border-radius: 15px;
+            padding: 0 50px;
+            position: relative;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .header {
+            font-size: 38px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 150px;
+        }
+        .input-item {
+            display: block;
+            width: 100%;
+            border: 0;
+            padding: 10px;
+            border-bottom: 1px solid rgb(128, 125, 125);
+            font-size: 15px;
+            outline: none;
+        }
+        .input-item::placeholder {
+            text-transform: uppercase;
+        }
+        .btn {
+            text-align: center;
+            padding: 10px;
+            width: 100%;
+            margin-top: 40px;
+            background-image: linear-gradient(to right, #a6c1ee, #fbc2eb);
+            color: #fff;
+            border: 0;
+            cursor: pointer;
+        }
+        .msg {
+            line-height: 88px;
+        }
+        a {
+            text-decoration-line: none;
+            color: #abc1ee;
+        }
+    </style>
+</body>
+</html>

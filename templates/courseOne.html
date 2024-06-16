@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ info[4] }}</title>
+    <link rel="stylesheet" href="/static/styles/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/styles/common.css">
+</head>
+<body>
+    <div>
+        <header>
+            <hr />
+                <h1>XAI作业管理系统</h1>
+            <hr />
+        </header>
+        <main>
+            {#      顶部导航栏      #}
+            <ul class="layui-nav" lay-filter="">
+                <li class="layui-nav-item"><a href="/admin">提交详情</a></li>
+                <li class="layui-nav-item"><a href="/toaddcourse">添加课程</a></li>
+                <li class="layui-nav-item"><a href="/cmanage">课程管理</a></li>
+                <li class="layui-nav-item"><a href="/home">展示页面</a></li>
+                <li class="layui-nav-item" style="float: right;">
+                    <a onclick="logout()" style="cursor: pointer">退出登录</a>
+                </li>
+                <li class="layui-nav-item" style="float: right;">
+                    <a href="/toReset">重置账号</a>
+                </li>
+            </ul>
+
+            <div class="layui-row">
+                {#      侧边导航栏      #}
+                <div class="layui-col-md2" style="width: 300px;margin-top: 10px;">
+                    <div class="layui-panel">
+                        <div style="padding: 0px;">
+                            <ul class="layui-menu" id="docDemoMenu1">
+                                <li class="layui-menu-item-group layui-menu-item-down">
+                                    <div class="layui-menu-body-title">
+                                        全部 <i class="layui-icon layui-icon-down"></i>
+                                    </div>
+                                    <ul>
+                                        {% for k,v in menu.items() %}
+                                            <li class="layui-menu-item-group layui-menu-item-down">
+                                                <div class="layui-menu-body-title">
+                                                    {{k}} <i class="layui-icon layui-icon-up"></i>
+                                                </div>
+                                                <ul>
+                                                    {% for course in v %}
+                                                        <li>
+                                                            <div class="layui-menu-body-title">
+                                                                <a href="/show_course?course={{course[0]}}">{{course[1]}}</a>
+                                                            </div>
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md9" style="margin-left: 20px;">
+                    <!--       信息汇总         -->
+                    <div class="layui-row ">
+                        <div class="layui-col-md1"></div>
+                        <div class="layui-col-md12">
+                            <table class="layui-table">
+                                <tr>
+                                    <td>{{ info[3] }} {{ info[4] }}</td>
+                                    <td>共 <b>{{info[0]}}</b> 组</td>
+                                    <td>提交 <b>{{info[1]}}</b> 组</td>
+                                    <td>未提交 <b>{{info[2]}}</b> 组</td>
+                                    <td>
+                                        <button id="packBtn" type="button" onclick="getPackage({{ info[3] }})" class="layui-btn">打包</button>
+                                        <a id="packUrl" href="/static/package/{{ info[3] }}.zip">下载打包文件</a>
+                                    </td>
+                                    <td>
+                                        <form action="/delPackage" method="post">
+                                            <input type="text" style="display: none;" name="courseId" value="{{info[3]}}" />
+                                            <input type="submit" id="delPackBtn" class="layui-btn layui-btn-danger" value="删除打包文件" />
+                                        </form>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <!--       学生列表         -->
+                    <div class="layui-row">
+                        <div class="layui-col-md1"></div>
+                        <div class="layui-col-md12">
+                            <table class="layui-table">
+                                <thead>
+                                    <tr id="thead">
+                                        <td>组别</td>
+                                        <td>小组成员</td>
+                                        <td>提交状态</td>
+                                        <td>提交时间</td>
+                                        <td>操作1</td>
+                                        <td>操作2</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sub in data %}
+                                        <tr>
+                                            <form action="/remove" method="post" id="removeForm{{sub['groupId']}}">
+                                                <td><input type="text" name="group_id" value="{{sub['groupId']}}" style="display:none"/>{{ sub['groupId'] }}</td>
+                                                <td>{{sub['member']}}</td>
+                                                <td>{{sub['submit']}}</td>
+                                                <td>{{sub['subDate']}}</td>
+                                                <td><button type="button" onclick="removeData({{[sub['groupId'], sub['submit']]}})" class="layui-btn layui-btn-danger">删除</button></td>
+                                            </form>
+                                        <form action="/manage/upload" method="post" id="upload">
+                                            <td><input type="text" name="group_id" value="{{ sub['groupId'] }}" style="display: none"/><button type="submit" class="layui-btn" id="upload">上传</button></td>
+                                        </form>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <div style="float: right">{{ paginate.links }}</div>
+                        </div>
+                        <div class="layui-col-md1"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="/static/js/jquery-1.11.0.js"></script>
+    <script src="/static/layui/layui.js"></script>
+<script>
+    function showTip(msg) {
+        layui.use('layer', function(){
+          var layer = layui.layer;
+          layer.open({
+              title: 'Tips'
+              ,content: msg
+            });
+        });
+    }
+    $(function () {
+        const courseId = {{ info[3] }};
+        if (courseId) {
+            $.ajax({
+                url: "/packStatus",
+                data: {'courseId': courseId},
+                type: "GET",
+                success: function(result) {  //回调函数中的参数，就是响应的数据
+                    if (result) {   // 已打包
+                        $("#packBtn").hide();
+                        $("#packUrl").show();
+                        $("#delPackBtn").show();
+                    } else {
+                        $("#packBtn").show();
+                        $("#packUrl").hide();
+                        $("#delPackBtn").hide();
+                    }
+                }
+            });
+        }
+    });
+
+    function logout() {
+        localStorage.removeItem('admin')
+        location.href = '/admin_logout'
+    }
+
+    function getPackage(courseId) {
+        $.ajax({
+            url: "/package",
+            data: {'courseId': courseId},
+            type: "GET",
+            success: function(result) {  //回调函数中的参数，就是响应的数据
+                if (result) {
+                    showTip("服务器正在打包中，稍后刷新该页面获取下载链接...")
+                } else {
+                    showTip("打包失败")
+                }
+            }
+        });
+    }
+
+    function removeData(param) {
+        if (param[1] === '已提交') {
+            layui.use('layer', function(){
+              var layer = layui.layer;
+              layer.confirm('确认删除该小组的作业？', {
+                       btn: ['确认'],
+                        btn1: function (index, layero) {
+                            form1 = document.getElementById('removeForm'+param[0])
+                            form1.submit()
+                        }
+                    });
+            });
+        } else {
+            layui.use('layer', function(){
+              var layer = layui.layer;
+              layer.open({
+                  title: 'Tips'
+                  ,content: '删除失败，该小组还未提交'
+                });
+            });
+        }
+    }
+
+</script>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        background-color: #f0ece9;
+    }
+    header {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: space-between;
+        background-color: #393d49;
+    }
+
+    header h1 {
+        color: #9a9897;
+    }
+
+    header hr {
+        margin: 20px 20px 0;
+        background-color: #bc9470;
+        border: 2px solid #bc9470;
+        width: 30%;
+        height: 0;
+    }
+    table {
+        margin: 0 auto;
+        width: 90%;
+        text-align: center;
+        border-spacing: 0;
+    }
+
+    table tbody tr {
+        height: 60px;
+    }
+
+    table tbody tr:nth-child(odd) {
+        background-color: #eef1f8;
+    }
+
+    table tbody tr:nth-child(even) {
+        background-color: #ffffff;
+    }
+
+    table tbody tr:not([id=thead]):hover {
+        cursor: pointer;
+        background-color: #e9e9e9;
+    }
+    a {
+        text-decoration:none;
+    }
+    a:link {color: #01AAED}
+    a:visited {color: #01AAED}
+    a:hover {color: #01AAED}
+    a:active {color: #01AAED}
+</style>
+</body>
+</html>

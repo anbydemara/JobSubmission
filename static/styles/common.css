@@ -1,0 +1,50 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+body {
+    background-color: #f0ece9;
+}
+header {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    background-color: #393d49;
+}
+
+header h1 {
+    color: #9a9897;
+    font-size: 26px;
+    margin-top: 5px;
+}
+
+header hr {
+    margin: 20px 20px 0;
+    background-color: #bc9470;
+    border: 2px solid #bc9470;
+    width: 30%;
+    height: 0;
+}
+table {
+    margin: 0 auto;
+    width: 90%;
+    text-align: center;
+    border-spacing: 0;
+}
+
+table tbody tr {
+    height: 60px;
+}
+
+table tbody tr:nth-child(odd) {
+    background-color: #eef1f8;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #ffffff;
+}
+
+table tbody tr:not([id=thead]):hover {
+    cursor: pointer;
+    background-color: #e9e9e9;
+}

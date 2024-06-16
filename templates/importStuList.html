@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>导入名单</title>
+    <link rel="stylesheet" href="/static/styles/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/styles/common.css">
+    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+
+    <script src="/static/layui/layui.js"></script>
+</head>
+<body>
+    <div>
+        <header>
+            <hr />
+                <h1>XAI作业管理系统</h1>
+            <hr />
+        </header>
+        <main>
+            <ul class="layui-nav">
+                <li class="layui-nav-item"><a href="/admin">提交详情</a></li>
+                <li class="layui-nav-item"><a href="/toaddcourse">添加课程</a></li>
+                <li class="layui-nav-item"><a href="/cmanage">课程管理</a></li>
+                <li class="layui-nav-item"><a href="/home">展示页面</a></li>
+                <li class="layui-nav-item" style="float: right;">
+                    <a onclick="logout()" style="cursor: pointer">退出登录</a>
+                </li>
+                <li class="layui-nav-item" style="float: right;">
+                    <a href="/toReset">重置账号</a>
+                </li>
+            </ul>
+
+            <div class="layui-panel" style="width: 750px;margin: 10px auto;">
+                <div style="padding: 30px;">
+                    <form class="layui-form" id="imForm" action="/import" method="post" enctype="multipart/form-data">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label" style="width: 100px;">选择课程</label>
+                            <div class="layui-input-block">
+                                <select name="courseId" lay-verify="required" id="courseId">
+                                    <option value=""></option>
+                                    {% for c in courses %}
+                                        <option value="{{c['courseId']}}">{{c['courseId']}} {{c['courseName']}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        {#  名单上传  #}
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">名单</label>
+                            <div class="layui-input-block">
+                              <input type="file" name="stuListFile" id="file" required  lay-verify="required" autocomplete="off" class="layui-upload-button">
+                                <a href="static/files/list.csv">名单模板</a>
+
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label" style="width: 100px;">截止时间</label>
+                            <input type="input" class="layui-input" style="width: 200px;" id="demoTest" >
+                        </div>
+                        <button type="button" id="btnTime" onclick="setTimeOnly()" style="display: none;margin-left: 160px;width: 130px;" class="layui-btn">仅修改截至时间</button>
+                        <button type="button" id="btnCover" onclick="setCover()" style="display: none;margin-left: 80px;width: 130px;" class="layui-btn">重置名单</button>
+                        <button type="button" id="btn" onclick="setDate()" style="margin-left: 45%;" class="layui-btn">导入</button>
+                    </form>
+                    <div style="width: 100px;text-align: center;color: red;margin: 10px auto">{{ info }}</div>
+                </div>
+            </div>
+
+
+        </main>
+    </div>
+    <script src="/static/js/jquery-1.11.0.js"></script>
+<script>
+    let courseId = localStorage.getItem('courseId')
+    if (courseId) {
+        let courseSelect = document.getElementById('courseId')
+        courseSelect.value = courseId
+        courseSelect.disabled = true
+        $.ajax({
+                url: "/importStatus",
+                data: {'courseId': courseId},
+                type: "GET",
+                success: function(result) {  //回调函数中的参数，就是响应的数据
+                    if (result) {
+                        document.getElementById('btnTime').style.display = 'inline-block'
+                        document.getElementById('btnCover').style.display = 'inline-block'
+                        document.getElementById('btn').style.display = 'none'
+                    }
+                }
+            });
+
+    }
+    localStorage.removeItem('courseId')
+
+    let sub_date = {}
+    layui.use('laydate', function(){
+      var laydate = layui.laydate;
+      laydate.render({
+          elem: '#demoTest', //指定元素
+          type: 'datetime',
+          done: function(value, date, endDate){
+              sub_date = date
+          }
+        });
+
+    });
+    function setCover() {
+        layer.confirm('该操作将覆盖该课程原学生的所有数据，是否继续？', {
+           btn: ['确认', '取消'],
+            btn1: function (index, layero) {
+               setDate();
+            }
+        });
+    }
+    function setDate() {
+        let form1 = document.getElementById("imForm")
+        let year = document.createElement("input");
+        year.name = "year"
+        year.value = sub_date.year
+        year.style.display = "none"
+        form1.appendChild(year)
+
+        let month = document.createElement("input");
+        month.name = "month"
+        month.value = sub_date.month
+        month.style.display = "none"
+        form1.appendChild(month)
+
+        let day = document.createElement("input");
+        day.name = "day"
+        day.value = sub_date.date
+        day.style.display = "none"
+        form1.appendChild(day)
+
+        let hour = document.createElement("input");
+        hour.name = "hour"
+        hour.value = sub_date.hours
+        hour.style.display = "none"
+        form1.appendChild(hour)
+
+        let minute = document.createElement("input");
+        minute.name = "minute"
+        minute.value = sub_date.minutes
+        minute.style.display = "none"
+        form1.appendChild(minute)
+
+        if (sub_date.year !== undefined) {
+            layui.use('layer', function(){
+              var layer = layui.layer;
+                layer.confirm('确认导入？学生密码与账号一致', {
+                   btn: ['确认'],
+                    btn1: function (index, layero) {
+                       document.getElementById("courseId").removeAttribute('disabled')
+                       form1.submit();
+                    }
+                });
+
+            });
+        } else {
+
+        }
+    }
+
+    function setTimeOnly() {
+        form1 = document.createElement('form')
+        form1.style.display = 'none'
+
+        let year = document.createElement("input");
+        year.name = "year"
+        year.value = sub_date.year
+        year.style.display = "none"
+        form1.appendChild(year)
+
+        let month = document.createElement("input");
+        month.name = "month"
+        month.value = sub_date.month
+        month.style.display = "none"
+        form1.appendChild(month)
+
+        let day = document.createElement("input");
+        day.name = "day"
+        day.value = sub_date.date
+        day.style.display = "none"
+        form1.appendChild(day)
+
+        let hour = document.createElement("input");
+        hour.name = "hour"
+        hour.value = sub_date.hours
+        hour.style.display = "none"
+        form1.appendChild(hour)
+
+        let minute = document.createElement("input");
+        minute.name = "minute"
+        minute.value = sub_date.minutes
+        minute.style.display = "none"
+        form1.appendChild(minute)
+
+        let inId = document.createElement('input')
+        inId.name = 'courseId'
+        inId.value = courseId
+        form1.appendChild(inId)
+        inId.style.display = "none"
+        form1.action = '/set_deadline'
+        form1.method = 'POST'
+
+        if (sub_date.year !== undefined && sub_date.month !== undefined
+            && sub_date.date !== undefined && sub_date.hours !== undefined
+            && sub_date.minutes !== undefined) {
+            layui.use('layer', function(){
+              var layer = layui.layer;
+                layer.confirm('确认重置时间吗？', {
+                   btn: ['确认'],
+                    btn1: function (index, layero) {
+                       document.body.appendChild(form1)
+                       form1.submit();
+                       document.body.removeChild(form1)
+                    }
+                });
+
+            });
+        } else {
+            layui.use('layer', function(){
+              var layer = layui.layer;
+                layer.open({
+              title: 'Tips'
+              ,content: '请输入正确的时间'
+            });
+
+            });
+        }
+    }
+    function logout() {
+        localStorage.removeItem('admin')
+        location.href = '/admin_logout'
+    }
+
+    const oBtn = document.querySelector("#btn");
+    const oFile = document.querySelector("#file");
+    const course = document.querySelector("#courseId")
+    const init = () => {
+        bindEvent();
+    }
+
+    function bindEvent() {
+        oBtn.addEventListener('click', handleupload, false);
+    }
+
+    function showTip(msg) {
+        layui.use('layer', function(){
+          var layer = layui.layer;
+          layer.open({
+              title: 'Tips'
+              ,content: msg
+            });
+        });
+    }
+
+    function handleupload (e) {
+        const file = oFile.files[0];
+        if (course.value === "") {
+            showTip('选择课程')
+            e.preventDefault();
+            return ;
+        }
+        if (!file){
+            showTip('请提交文件再导入')
+            e.preventDefault();
+            return ;
+        }
+        if (file.type !== 'text/csv')
+        {
+            showTip('请提交csv文件')
+            e.preventDefault();
+            return ;
+        }
+        if (sub_date.year === undefined) {
+            showTip('设置失败，请选择时间')
+            e.preventDefault();
+        }
+    }
+    init();
+</script>
+</body>
+</html>

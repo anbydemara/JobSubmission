@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>新增课程</title>
+    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/styles/common.css">
+</head>
+<body>
+    <header>
+        <hr />
+            <h1>XAI作业管理系统</h1>
+        <hr />
+    </header>
+    <main>
+        <ul class="layui-nav">
+            <li class="layui-nav-item"><a href="/admin">提交详情</a></li>
+            <li class="layui-nav-item"><a href="/toaddcourse">添加课程</a></li>
+                <li class="layui-nav-item"><a href="/cmanage">课程管理</a></li>
+            <li class="layui-nav-item"><a href="/home">展示页面</a></li>
+            <li class="layui-nav-item" style="float: right;">
+                <a onclick="logout()" style="cursor: pointer">退出登录</a>
+            </li>
+            <li class="layui-nav-item" style="float: right;">
+                <a href="/toReset">重置账号</a>
+            </li>
+        </ul>
+
+        <div style="width: 750px;margin: 10px auto" class="layui-panel">
+            <div style="padding: 30px;">
+                <h1 style="text-align: center;margin-bottom: 20px;">单个课程</h1>
+                <form class="layui-form" action="/insert_course" method="post">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">课程名称</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="courseName" id="courseName"  lay-verify="required" placeholder="请输入课程名称" autocomplete="off" class="layui-input">
+                            </div>
+                    </div>
+                    <div class="layui-form-item">
+                      <label class="layui-form-label">学年</label>
+                      <div class="layui-input-block">
+                        <select name="schoolYear" id="schoolYear" lay-verify="required">
+                          <option value=""></option>
+
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                      <label class="layui-form-label">学期</label>
+                      <div class="layui-input-block">
+                        <select name="term" id="term" lay-verify="required">
+                          <option value=""></option>
+                          <option value="1" selected>1</option>
+                          <option value="2">2</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                      <label class="layui-form-label">年级</label>
+                      <div class="layui-input-block">
+                        <select name="grade" id="grade" lay-verify="required">
+                          <option value=""></option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                    <div class="layui-input-block">
+                    <input class="layui-btn" id="btn" style="margin-left: 35%"  type="submit" lay-filter="formDemo" />
+                    </div>
+                    </div>
+                </form>
+                <hr class="layui-border-green">
+                <h1 style="text-align: center">批量导入课程</h1>
+                <div style="margin-top: 20px;">
+                  <form class="layui-form" action="/listin_course" method="post" enctype="multipart/form-data">
+                    <div class="layui-form-item" style="border: solid 1px;padding: 5px;padding-top: 10px;width:500px;margin-left: 12%;">
+                <!--                                <label class="layui-form-label" >课程列表</label>-->
+                        <div class="layui-input-block" style="margin-left: 10%">
+                          <input type="file" id="listFile" name="courseList" required  lay-verify="required" autocomplete="off" class="layui-upload-button">
+                            <a href="/static/files/courses.csv" style="color: dodgerblue">课程列表模板</a>
+                        </div>
+                    </div>
+                      <div class="layui-form-item">
+                        <div class="layui-input-block">
+                          <input class="layui-btn" id="listBtn" type="submit" style="margin-left: 35%" />
+                        </div>
+                    </div>
+                  </form>
+                    <div style="width: 200px;text-align: center;color: red;margin: 10px auto">{{ info }}</div>
+                </div>
+            </div>
+        </div>
+    </main>
+<script src="/static/layui/layui.js"></script>
+<script>
+    function showTip(msg) {
+        layui.use('layer', function(){
+          var layer = layui.layer;
+          layer.open({
+              title: 'Tips'
+              ,content: msg
+            });
+        });
+    }
+    const init = () => {
+        bindEvent();
+        init_grade()
+        init_schoolYear()
+    }
+    const oBtn = document.querySelector("#btn");
+    const courseName = document.querySelector("#courseName");
+    const schoolYear = document.querySelector("#schoolYear");
+    const term = document.querySelector("#term");
+    const listFile = document.querySelector("#listFile")
+    const listBtn = document.querySelector("#listBtn")
+
+    function bindEvent() {
+        oBtn.addEventListener('click', handleupload, false);
+        listBtn.addEventListener('click', handleuplList, false);
+    }
+
+    function handleuplList (e) {
+        const file = listFile.files[0];
+        if (!file){
+            showTip('请先提交文件再上传')
+            e.preventDefault();
+            return ;
+        }
+        if (file.type !== 'text/csv') {
+            showTip('请提交csv文件');
+            e.preventDefault();
+            return ;
+        }
+    }
+
+    function handleupload (e) {
+        if (courseName.value === "") {
+            showTip('请输入课程名称')
+            e.preventDefault()
+            return
+        }
+        if (schoolYear.value === "" | term.value === "") {
+            showTip('请选择课程学年学期')
+            e.preventDefault()
+            return
+        }
+    }
+
+    init();
+
+    function init_grade() {
+        let gradeSelect = document.getElementById("grade")
+        let now = new Date()
+        let cur_year = now.getFullYear()
+        cur_year = cur_year % 100
+        let all_grades = []
+
+        for(let i = cur_year - 5;i < cur_year + 2; i++) {
+            all_grades.push(i)
+        }
+        for (let grd of all_grades) {
+            let option_temp = document.createElement('option')
+            option_temp.value = grd
+            option_temp.text = grd + '级'
+            gradeSelect.appendChild(option_temp)
+        }
+        gradeSelect.value = cur_year
+    }
+
+    function init_schoolYear() {
+        let schYear = document.getElementById('schoolYear')
+        let now = new Date()
+        let cur_year = now.getFullYear()
+        let first_years = []
+        let second_years = []
+        for(let i = cur_year - 5;i < cur_year + 2; i++) {
+            first_years.push(i)
+            second_years.push(i+1)
+        }
+        let all_years = []
+        for (let i = 0; i < first_years.length; i++) {
+            all_years[i] = first_years[i] + '-' + second_years[i]
+        }
+        for (let schY of all_years) {
+            let option_temp = document.createElement('option')
+            option_temp.value = schY
+            option_temp.text = schY
+            schYear.appendChild(option_temp)
+        }
+        schYear.value = cur_year + '-' + (cur_year+1)
+    }
+    function logout() {
+        localStorage.removeItem('admin')
+        location.href = '/admin_logout'
+    }
+</script>
+</body>
+</html>

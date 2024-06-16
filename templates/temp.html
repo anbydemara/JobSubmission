@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+    <meta http-equiv="Content-Type" content="text/html;" />
+
+    <title>成果展示</title>
+</head>
+
+<body>
+    <header>
+        <hr />
+            <h1>XAI作业管理系统</h1>
+        <hr />
+    </header>
+    <div style="margin-top: 10px;">
+        {#    侧边导航栏    #}
+        <div class="layui-col-md2" style="width: 300px;">
+            <div class="layui-panel">
+                <div style="padding: 30px;">
+                    <ul class="layui-menu" id="docDemoMenu1">
+                    <li>
+                      <div class="layui-menu-body-title" style="font-size: 20px;">
+                        <a id="toLogin" href="/toLogin">登录</a>
+                        <a id="toAdmin" href="/admin">返回管理系统</a>
+                        <a id="toUser" href="/toUpload">返回用户界面</a>
+                      </div>
+                    </li>
+                    <li class="layui-menu-item-divider"></li>
+                    <li class="layui-menu-item-group layui-menu-item-down">
+                      <div class="layui-menu-body-title">
+                        全部 <i class="layui-icon layui-icon-down"></i>
+                      </div>
+                      <ul>
+                          {% for k,v in menu.items() %}
+                            <li class="layui-menu-item-group layui-menu-item-down">
+                              <div class="layui-menu-body-title">
+                                {{k}} <i class="layui-icon layui-icon-down"></i>
+                              </div>
+                              <ul>
+                                  {% for course in v %}
+                                    <li>
+                                        <div class="layui-menu-body-title">
+                                            <a href="/home?course={{course[0]}}">{{course[1]}}</a>
+                                        </div>
+                                    </li>
+                                  {% endfor %}
+                              </ul>
+                          </li>
+                          {% endfor %}
+                      </ul>
+                    </li>
+                  </ul>
+                </div>
+            </div>
+        </div>
+
+        {#    展示区域    #}
+        <div class="layui-col-md9" style="margin-left: 20px;">
+            <div class="layui-panel">
+                <div style="padding: 30px;">
+                    <div align="center">温馨提示：请选择课程查看全部提交记录</div>
+                    <table width="1015" height="367"  align="center">
+                        {% for i in range(length) %}
+                            <tr><td><div style="margin-top: 50px;"></div></td></tr>
+                            <tr style="text-align:left;line-height: 5px;"><td><a style="font-size: 17px" href="/home?course={{lst[i]['courseId']}}">{{lst[i]['courseId']}} {{lst[i]['courseName']}}</a></td></tr>
+                            <tr><td><hr class="layui-border-cyan"></td><td><hr class="layui-border-cyan"></td><td><hr class="layui-border-cyan"></td></tr>
+                            <tr>
+                                {% for sub in lst[i]['subList'] %}
+                                    <td>
+                                        <table width="250px" >
+                                            <tr>
+                                                <td>
+                                                    <a href="./static/data/{{ lst[i]['courseId'] }}/{{sub['groupId']}}/main.mp4"><img src="./static/data/{{ lst[i]['courseId'] }}/{{sub['groupId']}}/main.png" alt="1" width="240" height="151" /></a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <div align="center">
+                                                        {{sub['project']}}<br>{{sub['member']}}<br>
+                                                        (<a href="./static/data/{{ lst[i]['courseId'] }}/{{sub['groupId']}}/report.pdf">课程报告</a>, <a href="./static/data/{{ lst[i]['courseId'] }}/{{sub['groupId']}}/report.pptx">PPT</a>，<a href="./static/data/{{ lst[i]['courseId'] }}/{{sub['groupId']}}/code.zip">源代码</a>)
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let admin = localStorage.getItem('admin')
+        let group_id = localStorage.getItem('group_id')
+        let toAdmin = document.getElementById("toAdmin")
+        let toLogin = document.getElementById('toLogin')
+        let toUser = document.getElementById('toUser')
+        if (admin) {
+            toLogin.style.display = 'none'
+            toUser.style.display = 'none'
+            toAdmin.style.display = 'inline-block'
+        } else if (group_id) {
+            toLogin.style.display = 'none'
+            toUser.style.display = 'inline-block'
+            toAdmin.style.display = 'none'
+        } else {
+            toLogin.style.display = 'inline-block'
+            toUser.style.display = 'none'
+            toAdmin.style.display = 'none'
+        }
+
+    </script>
+</body>
+<script src="/static/layui/layui.js"></script>
+<style>
+    a {
+        text-decoration:none;
+    }
+    a:link {color: #01AAED}
+    a:visited {color: #01AAED}
+    a:hover {color: #01AAED}
+    a:active {color: #01AAED}
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    body {
+        background-color: #f0ece9;
+    }
+    header {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: space-between;
+        background-color: #393d49;
+    }
+
+    header h1 {
+        color: #9a9897;
+    }
+
+    header hr {
+        margin: 20px 20px 0;
+        background-color: #bc9470;
+        border: 2px solid #bc9470;
+        width: 30%;
+        height: 0;
+    }
+</style>
+</html>

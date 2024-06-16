@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>课程管理</title>
+    <link rel="stylesheet" href="/static/styles/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+        <link rel="stylesheet" href="/static/styles/common.css">
+</head>
+<body>
+    <div>
+        <header>
+            <hr />
+                <h1>XAI作业管理系统</h1>
+            <hr />
+        </header>
+        <main>
+
+            <ul class="layui-nav">
+                <li class="layui-nav-item"><a href="/admin">提交详情</a></li>
+                <li class="layui-nav-item"><a href="/toaddcourse">添加课程</a></li>
+                <li class="layui-nav-item"><a href="/cmanage">课程管理</a></li>
+                <li class="layui-nav-item"><a href="/home">展示页面</a></li>
+                <li class="layui-nav-item" style="float: right;">
+                    <a onclick="logout()" style="cursor: pointer">退出登录</a>
+                </li>
+                <li class="layui-nav-item" style="float: right;">
+                    <a href="/toReset">重置账号</a>
+                </li>
+            </ul>
+            <!--            课程列表-->
+            <div>
+                <div class="layui-row">
+                    <div class="layui-col-md10" style="margin-left: 120px;">
+                        <table class="layui-table">
+                            <thead>
+                                <tr id="thead">
+                                    <td>课程编号</td>
+                                    <td>课程名称</td>
+                                    <td>学年 学期</td>
+                                    <td>年级</td>
+                                    <td>学生名单</td>
+                                    <td>提交情况</td>
+                                    <td>截至日期</td>
+                                    <td>操作1</td>
+                                    <td>操作2</td>
+                                    <td>操作3</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                    <tr>
+                                        <form action="/removeCourse" method="post" id="removeForm{{course['courseId']}}">
+                                            <td><input type="text" name="courseId" value="{{course['courseId']}}" style="display:none"/>{{course['courseId']}}</td>
+                                            <td>{{course['courseName']}}</td>
+                                            <td>{{course['schoolYear']}}学年{{course['term']}}学期</td>
+                                            <td>{{course['grade']}}级</td>
+                                            <td>{{course['list']}}</td>
+                                            <td>{{ course['ratio'] }}</td>
+                                            <td>{{course['deadline']}}</td>
+                                            <td><button type="button" class="layui-btn" style="width: 100px;" onclick="toAddStu({{course['courseId']}})">导入/重置</button></td>
+                                            <td><button type="button" class="layui-btn" style="width: 100px;" onclick="changeInfo({{course['courseId']}})">编辑</button></td>
+                                            <td><button type="button" class="layui-btn layui-btn-danger" onclick="removeCourse({{course['courseId']}})" >删除</button></td>
+                                        </form>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <div style="float: right">{{ paginate.links }}</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+<script src="/static/layui/layui.js"></script>
+<script>
+    function logout() {
+        localStorage.removeItem('admin')
+        location.href = '/admin_logout'
+    }
+
+    function toAddStu(courseId) {
+        localStorage.setItem('courseId', courseId)
+        location.href = '/toAddStu'
+    }
+
+    function changeInfo(courseId) {
+        location.href = '/toChangeCourse?course='+courseId;
+    }
+
+    function removeCourse(courseId) {
+        layui.use('layer', function(){
+          var layer = layui.layer;
+          layer.confirm('删除课程将清除相关所有数据，确认删除？', {
+                   btn: ['确认'],
+                    btn1: function (index, layero) {
+                        form1 = document.getElementById('removeForm'+courseId)
+                        form1.submit()
+                    }
+                });
+        });
+    }
+</script>
+<style>
+    table tbody tr {
+        height: 90px;
+    }
+</style>
+</body>
+</html>

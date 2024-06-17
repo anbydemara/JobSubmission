@@ -10,12 +10,11 @@ import zipfile
 import threading
 from flask_paginate import Pagination
 
-DATABASE = './submission.db'
-
+current_dir = os.path.dirname(__file__)
+DATABASE = os.path.join(current_dir, 'submission.db')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'xai-submission'
-
 
 def make_dicts(cursor, row):
     return dict((cursor.description[idx][0], value)
@@ -159,7 +158,11 @@ def index():  # 程序入口
 
 @app.route('/toLogin')
 def toLogin():
-    return render_template('login.html')
+    result = {
+        'type': 0,  #
+        'info': ""
+    }
+    return render_template('login.html', result=result)
 
 
 @app.route('/login', methods=['get', 'post'])
@@ -173,15 +176,20 @@ def login():  # 登录请求
 
         user = query_db('select * from student where groupId=? and password=?',
                         [groupId, password], one=True)
+        result = {
+            'type': 1,  # 学生登录
+            'info': "账号或密码错误"
+        }
         if user is None:
-            return render_template('login.html', not_login="账号或密码错误")
+            return render_template('login.html', result=result)
         else:   # 用户名及密码正确
             courseId = getCidByGid(int(groupId))
             if not isLate(courseId):    # 未截至
                 session['group_id'] = groupId
                 return render_template('change.html', member=user['member'].split('_'), project=user['project'], groupId=groupId)
             else:
-                return render_template('login.html', not_login="已到截至日期")
+                result['info'] = "已到截至日期"
+                return render_template('login.html', result=result)
 
 
 # 学生退出登录
@@ -238,8 +246,8 @@ def import_stuList():  # 导入课程学生名单
     cur = get_db().cursor()
     try:
         # 删除该课程原来学生提交的作业（如果有）
-        if os.path.exists(f'./static/data/{courseId}'):
-            shutil.rmtree(f'./static/data/{courseId}')
+        if os.path.exists(f'{current_dir}/static/data/{courseId}'):
+            shutil.rmtree(f'{current_dir}/static/data/{courseId}')
 
         # 删除该课程原来学生的提交记录（如果有）
         cur.execute('delete from submit where courseId=?', [int(courseId)])
@@ -302,7 +310,7 @@ def file_save():  # 上传作业
         group = request.form.get('group_id')
         courseId = getCidByGid(int(group))  # 课程编号
 
-        file_dir = f'static/data/{courseId}/{group}'
+        file_dir = f'{current_dir}/static/data/{courseId}/{group}'
         creat_folder(file_dir)
 
         data = request.files
@@ -366,8 +374,11 @@ def admin_login():  # 管理员登录
         password = request.form.get('password')
         admin = query_db("select * from admin where username=? and password=?", [username, encrypt(password)], True)
         if admin is None:
-            not_login = "账号或密码错误"
-            return render_template('login.html', not_login=not_login)
+            result = {
+                'type': 2,  # 管理员登录
+                'info': "账号或密码错误"
+            }
+            return render_template('login.html', result=result)
         session['admin_id'] = username
         return redirect('/management')
     else:
@@ -409,9 +420,9 @@ def remove():  # 管理员删除小组上传资料
         return redirect('/toLogin')
     group_id = request.form.get('group_id')
     courseId = getCidByGid(int(group_id))
-    if os.path.exists(f'./static/data/{courseId}/{group_id}'):
+    if os.path.exists(f'{current_dir}/static/data/{courseId}/{group_id}'):
         # 删除文件
-        shutil.rmtree(f'./static/data/{courseId}/{group_id}')
+        shutil.rmtree(f'{current_dir}/static/data/{courseId}/{group_id}')
         db = get_db()
         cur = db.cursor()
         try:
@@ -446,16 +457,25 @@ def reset():  # 修改密码
     groupId = request.form.get('groupId')
     oldPassword = request.form.get('oldPassword')
     newPassword = request.form.get('newPassword')
-    res = query_db("select password from student where groupId=?", [int(groupId)], True)
+    res = None
+    result = {
+        'type': 3,  # 重置密码
+        'info': "账号或密码错误"
+    }
+    try:
+        res = query_db("select password from student where groupId=?", [int(groupId)], True)
+    except Exception as e:
+        result['info'] = "非法字符"
+        return render_template('login.html', result=result)
     if res is None:
-        not_login = '该用户不存在'
-        return render_template('login.html', not_login=not_login)
+        result['info'] = '该用户不存在'
+        return render_template('login.html', result=result)
     if res['password'] != encrypt(oldPassword):
-        not_login = '原密码错误'
-        return render_template('login.html', not_login=not_login)
+        result['info'] = '原密码错误'
+        return render_template('login.html', result=result)
     update_db("update student set password=? where groupId=?", [encrypt(newPassword), int(groupId)])
-    not_login = '密码修改成功'
-    return render_template('login.html', not_login=not_login)
+    result['info'] = '密码修改成功'
+    return render_template('login.html', result=result)
 
 
 @app.route('/infoReset', methods=['get', 'post'])
@@ -502,6 +522,10 @@ def show_course(limit=7):  # 显示单个课程的学生名单
             course = request.args.get('course')
             data = query_db('select groupId,member,submit from student where courseId=?', [int(course)])
 
+            # 新增筛选未提交
+            if request.args.get('submit'):
+                data = [item for item in data if item['submit'] == '未提交']
+            print(data)
             # 分页
             data = data[::-1]
             page = int(request.args.get("page", 1))
@@ -514,6 +538,7 @@ def show_course(limit=7):  # 显示单个课程的学生名单
                 stu['subDate'] = '--'
                 if sub is not None:
                     stu['subDate'] = time.strftime("%Y/%m/%d %X", time.localtime(sub['subDate']))
+
             # 新增信息汇总
             res = query_db("select count(*) as total from student where courseId=?", [int(course)], True)
             total_count = res['total']
@@ -554,11 +579,11 @@ def packageData():
     courseId = request.args.get('courseId')
     if not courseId:
         return jsonify(False)
-    dirPath = f'./static/data/{courseId}'
-    outPath = './static/package/'
+    dirPath = f'{current_dir}/static/data/{courseId}'
+    outPath = f'{current_dir}/static/package/'
     if not os.path.exists(outPath):
         creat_folder(outPath)
-    outFullPath = f'./static/package/{courseId}.zip'
+    outFullPath = f'{current_dir}/static/package/{courseId}.zip'
     t = threading.Thread(target=package, args=(dirPath, outFullPath, courseId))
     t.start()
     return jsonify(True)
@@ -572,7 +597,7 @@ def packStatus():
     res = query_db("select packaged from package where courseId=?", [int(courseId)], True)
     if res is None:
         return jsonify(False)
-    if res['packaged'] == 1 and os.path.exists(f'./static/package/{courseId}.zip'):
+    if res['packaged'] == 1 and os.path.exists(f'{current_dir}/static/package/{courseId}.zip'):
         return jsonify(True)
     return jsonify(False)
 
@@ -582,7 +607,7 @@ def delPackage():
     courseId = request.form.get('courseId')
     if not courseId:
         return redirect(request.referrer)
-    dirPath = f'./static/package/{courseId}.zip'
+    dirPath = f'{current_dir}/static/package/{courseId}.zip'
     if os.path.exists(dirPath):
         os.remove(dirPath)
     update_db("update package set packaged=0 where courseId=?", [int(courseId)])
@@ -681,10 +706,10 @@ def removeCourse():  # 删除整个课程
         cur.execute("delete from package where courseId=?", [int(courseId)])
         db.commit()
         # 删除提交资料data
-        dataPath = f'./static/data/{courseId}'
+        dataPath = f'{current_dir}/static/data/{courseId}'
         if os.path.exists(dataPath):
             shutil.rmtree(dataPath)
-        packPath = f'./static/package/{courseId}.zip'
+        packPath = f'{current_dir}/static/package/{courseId}.zip'
         if os.path.exists(packPath):
             os.remove(packPath)
     except Exception as e:
@@ -748,6 +773,7 @@ def resetAdmin():
             return render_template("reset.html", adminId=username, status="重置成功")
     else:
         return redirect("/toLogin")
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)

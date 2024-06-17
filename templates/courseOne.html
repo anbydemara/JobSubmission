@@ -73,6 +73,8 @@
                                     <td>共 <b>{{info[0]}}</b> 组</td>
                                     <td>提交 <b>{{info[1]}}</b> 组</td>
                                     <td>未提交 <b>{{info[2]}}</b> 组</td>
+                                    <td><a href="/show_course?course={{ info[3] }}&submit=1">仅显示未提交</a></td>
+                                    <td><a href="/show_course?course={{ info[3] }}">显示全部</a></td>
                                     <td>
                                         <button id="packBtn" type="button" onclick="getPackage({{ info[3] }})" class="layui-btn">打包</button>
                                         <a id="packUrl" href="/static/package/{{ info[3] }}.zip">下载打包文件</a>
@@ -102,7 +104,7 @@
                                         <td>操作2</td>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="dataBody">
                                     {% for sub in data %}
                                         <tr>
                                             <form action="/remove" method="post" id="removeForm{{sub['groupId']}}">

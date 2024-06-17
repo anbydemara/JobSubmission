@@ -6,9 +6,9 @@
     <title>登录</title>
 </head>
 <body>
-    <!-- 学生登录 -->
-    <div class="container stu_login">
-        <div class="login-wrapper">
+    <div class="container">
+        <!-- 学生登录 -->
+        <div class="stu_login login-wrapper">
             <div class="header">学生登录</div>
             <div class="form-wrapper">
                 <form action="/login" method="post" id="stu_login_form">
@@ -20,7 +20,11 @@
                         <input type="password" name="password" placeholder="password" class="input-item">
                         <div id="stu_pwd_info" class="info"></div>
                     </div>
-                    <div class="info" id="login-info" style="margin: auto">{{ not_login }}</div>
+                    <div class="info" id="login-info" style="margin: auto">
+                        {% if result.type == 1 %}
+                            {{ result.info }}
+                        {% endif%}
+                    </div>
                     <input type="button" class="btn" id="stuSubmit" value="Login" />
                 </form>
             </div>
@@ -29,11 +33,9 @@
                 <a style="float: right;cursor: pointer;" id="to_teacher">教师登录</a>
             </div>
         </div>
-    </div>
-    <!--  修改密码  -->
-    <div class="container reset_pwd">
-        <div class="login-wrapper">
-            <div class="header" style="line-height: 60px;">修改密码</div>
+        <!--  修改密码  -->
+        <div class="login-wrapper reset_pwd">
+            <div class="header" style="height: 60px;"></div>
             <div class="form-wrapper">
                 <form action="/reset" method="post" id="resetForm">
                     <div class="form-item">
@@ -52,6 +54,12 @@
                         <input type="password" name="rePassword" placeholder="确认密码" class="input-item">
                         <div id="re_pwd_info" class="info"></div>
                     </div>
+
+                    <div class="info" id="login-info" style="margin: auto">
+                        {% if result.type == 3 %}
+                            {{ result.info }}
+                        {% endif%}
+                    </div>
                     <input type="button" class="btn" style="margin-top: 0px;cursor: pointer" id="resetSubmit" value="Reset" />
                 </form>
             </div>
@@ -59,10 +67,8 @@
                 <a id="back_login" style="cursor: pointer">用户登录</a>
             </div>
         </div>
-    </div>
-    <!--  教师登录  -->
-    <div class="container teacher_login">
-        <div class="login-wrapper">
+        <!--  教师登录  -->
+        <div class="login-wrapper teacher_login">
             <div class="header">教师登录</div>
             <div class="form-wrapper">
                 <form action="/admin" method="post" id="admin_form">
@@ -73,6 +79,11 @@
                     <div class="form-item">
                         <input type="password" name="password" id="admin_pwd" placeholder="password" class="input-item">
                         <div id="admin_pwd_info" class="info"></div>
+                    </div>
+                    <div class="info" id="login-info" style="margin: auto">
+                        {% if result.type == 2 %}
+                            {{ result.info }}
+                        {% endif%}
                     </div>
                     <input type="button" class="btn" id="adminSubmit" value="Login" />
                 </form>
@@ -86,24 +97,48 @@
     <script src="/static/js/jquery-1.11.0.js"></script>
     <script type="text/javascript">
         $(function () {
-            // 登录切换
-            $('.reset_pwd').hide();
-            $('.teacher_login').hide();
-            $('#to_teacher').click(function () {
+            let login_type = {{ result.type }}
+            console.log(login_type)
+            if(login_type === 1) {
+                $('.reset_pwd').hide();
+                $('.stu_login').show();
+                $('.teacher_login').hide();
+            } else if (login_type === 2) {
+                $('.reset_pwd').hide();
                 $('.stu_login').hide();
                 $('.teacher_login').show();
-            });
-            $('#to_stu').click(function () {
+            } else if (login_type === 3) {
+                $('.reset_pwd').show();
+                $('.stu_login').hide();
                 $('.teacher_login').hide();
-                $('.stu_login').show();
+            } else {
+                $('.reset_pwd').hide();
+                $('.teacher_login').hide();
+            }
+
+            // 登录切换
+            $('#to_teacher').click(function () {
+                $('.stu_login').fadeOut(500, function() {
+                    $('.teacher_login').fadeIn()
+                })
+            });
+
+            $('#to_stu').click(function () {
+                $('.teacher_login').fadeOut(500, function() {
+                    $('.stu_login').fadeIn();
+                })
+
+
             });
             $("#to_reset").click(function () {
-                $(".stu_login").hide();
-                $(".reset_pwd").show();
+                $(".stu_login").fadeOut(500, function() {
+                    $(".reset_pwd").fadeIn();
+                })
             });
             $("#back_login").click(function () {
-                $(".reset_pwd").hide();
-                $(".stu_login").show();
+                $(".reset_pwd").fadeOut(500, function() {
+                    $(".stu_login").fadeIn();
+                })
             })
 
             // input校验
@@ -219,7 +254,6 @@
         body {
             height: 100%;
         }
-
         .info {
             font-size: 12px;
             width: 100px;
@@ -230,21 +264,35 @@
         .form-item {
             margin-bottom: 20px;
         }
-
         .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             height: 100%;
             background-image: linear-gradient(to right, #fbc2eb, #a6c1ee);
+            transition: display 1.5s;
+            overflow: hidden;
         }
         .login-wrapper {
+            display: inline-block;
             background-color: #fff;
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
             width: 358px;
             height: 488px;
             border-radius: 15px;
             padding: 0 50px;
-            position: relative;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
+            -webkit-transform: perspective(1px) translateZ(0);
+            transform: perspective(1px) translateZ(0);
+            -webkit-transition-duration: 0.3s;
+            transition-duration: 0.3s;
+            -webkit-transition-property: box-shadow, transform;
+            transition-property: box-shadow, transform;
+
+        }
+        .login-wrapper:hover, .login-wrapper:focus, .login-wrapper:active {
+            box-shadow: 0 10px 10px 10px rgba(0, 0, 0, 0.5);
+            -webkit-transform: scale(1.1);
+            transform: scale(1.1);
         }
         .header {
             font-size: 38px;
@@ -261,6 +309,14 @@
             font-size: 15px;
             outline: none;
         }
+        .input-item:focus {
+            border-radius: 5px;
+            color: rgb(46, 50, 49);
+            /* outline-color: rgb(0, 255, 255); */
+            box-shadow: -3px -3px 10px rgb(46, 50, 49);
+            transition: .1s;
+            transition-property: box-shadow;
+        }
         .input-item::placeholder {
             text-transform: uppercase;
         }
@@ -269,17 +325,40 @@
             padding: 10px;
             width: 100%;
             margin-top: 40px;
-            background-image: linear-gradient(to right, #a6c1ee, #fbc2eb);
+            background: linear-gradient(to right, #a6c1ee, #fbc2eb);
             color: #fff;
             border: 0;
             cursor: pointer;
+            -webkit-transition-duration: 0.3s;
+            transition-duration: 0.3s;
+            -webkit-transition-property: box-shadow, transform;
+            transition-property: box-shadow, transform;
+
+        }
+        .btn:hover {
+            background: linear-gradient(to right, #fbc2eb, #a6c1ee);
+            -webkit-transform: scale(1.1);
+            transform: scale(1.1);
+
         }
         .msg {
             line-height: 88px;
         }
         a {
-            text-decoration-line: none;
-            color: #abc1ee;
+            background-image: linear-gradient(
+                to right,
+                #54b3d6,
+                #54b3d6 50%,
+                #000 50%
+            );
+            background-size: 200% 100%;
+            background-position: -100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: all 0.3s ease-in-out;
+        }
+        a:hover {
+            background-position: 0;
         }
     </style>
 </body>
